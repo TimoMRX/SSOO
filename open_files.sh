@@ -6,7 +6,7 @@
 
 ##### Opciones por defecto
 
-pattern=*
+pattern=
 
 
 ##### Estilos
@@ -31,9 +31,15 @@ error_exit() {
   exit 1
 }
 
-usage()
-{
+usage() {
    echo "usage: open_files [-f "patron"] [-h]"
+}
+
+main() {
+  printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
+  for i in $(who | cut -d" " -f 1); do
+    printf "%s\t%s" "$i" ""
+  done
 }
 
 
