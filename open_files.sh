@@ -8,6 +8,9 @@
 
 pattern=
 
+##### Constantes
+
+PROGNAME=$(basename $0)
 
 ##### Estilos
 
@@ -35,10 +38,10 @@ usage() {
    echo "usage: open_files [-f "patron"] [-h]"
 }
 
-main() {
+open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   for i in $(who | cut -d" " -f 1); do
-    printf "%s\t%s\t%s\t%s" "$i" "lsof -u $i | wc -l" "id -u $i" "ps -u $user --no-headers | sort -k9 | cut -d":" -f3 | head -n 1 | cut -d"0" -f3"
+    printf "%s \t %s \t %s \t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ps -u $user --no-headers | sort -k9 | cut -d":" -f3 | head -n 1 | cut -d"0" -f3)" 
   done
 }
 
@@ -71,3 +74,5 @@ while [ "$1" != "" ]; do
    esac
    shift
 done
+
+open_files
