@@ -45,6 +45,12 @@ open_files() {
   done
 }
 
+pattern_files() {
+  printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
+  for i in $(who | cut -d" " -f 1); do
+    printf "%s \t %s \t %s \t %s\n" "$i" "lsof -u $i |"
+  done
+}
 
 ##### Programa principal
 
@@ -54,10 +60,11 @@ while [ "$1" != "" ]; do
     -f)
         shift
         pattern=$1
+        pattern_files pattern
+        exit 0
         ;;
         
     -o | --off_line )
-        interactive=1
         ;;
 
     -u | --user )
@@ -76,3 +83,4 @@ while [ "$1" != "" ]; do
 done
 
 open_files
+exit 0
