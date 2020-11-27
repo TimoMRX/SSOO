@@ -38,7 +38,7 @@ usage() {
 main() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   for i in $(who | cut -d" " -f 1); do
-    printf "%s\t%s" "$i" ""
+    printf "%s\t%s\t%s\t%s" "$i" "lsof -u $i | wc -l" "id -u $i" "ps -u $user --no-headers | sort -k9 | cut -d":" -f3 | head -n 1 | cut -d"0" -f3"
   done
 }
 
