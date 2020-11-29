@@ -40,15 +40,24 @@ usage() {
 
 open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
+  if [ $(ps -u $(who | cut -d" " -f 1) -eo tty,time --no-headers | sort -k2r | head -n 1 | cut -d"0" -f 1) == "?" ]; then
+   tty="?"
+  else 
+   tty="p"
+  fi
   for i in $(who | cut -d" " -f 1); do
-    printf "%s \t %s \t %s \t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ps -u $i --no-headers | sort -k9 | cut -d":" -f3 | head -n 1 | cut -d"0" -f3)" 
+    printf "%s \t %s \t %s \t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ttyf $i)" 
   done
 }
+
+ttyf() {
+  ps -u $1 -eo pid,tty,time --no-headers | sort -k3r | head -n 1 | cut -d"$tty" -f 1
+} 
 
 pattern_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   for i in $(who | cut -d" " -f 1); do
-    printf "%s \t %s \t %s \t %s\n" "$i" "lsof -u $i |"
+    printf "%s \t %s \t %s \t %s\n" "$i" "lsof -u $i | wc -l" "$(id -u $i)"
   done
 }
 
@@ -57,7 +66,7 @@ pattern_files() {
 # Procesar la línea de comandos del script para leer las opciones
 while [ "$1" != "" ]; do
    case $1 in
-    -f)
+    -f | --)
         shift
         pattern=$1
         pattern_files pattern
