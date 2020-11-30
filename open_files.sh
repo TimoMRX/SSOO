@@ -7,6 +7,7 @@
 ##### Opciones por defecto
 
 pattern=
+offline=
 
 ##### Constantes
 
@@ -50,29 +51,28 @@ lsof_install() {
     error_exit "lsof no instalado: sudo apt install lsof"
   fi
 }
-tty_compare() {
-if [ "$(ps -u $i -oetime,tty --no-headers | head -n 1 | awk '{printf $2}')" = "?" ]; then
-  tty="?"
-else 
-  tty="p"
-fi
-}
 
 tty_f() {
-  ps -u $1 -oetime -o tty,pid --no-headers | sort -k3.1n | head -n 1 | cut -d"$tty" -f 2
+  ps -u $1 -oetime -o tty,pid --no-headers | head -n 1 | awk '{print $3}'
 }
 
 
 open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   
-  for i in $(who | cut -d" " -f 1); do
-    tty_compare
-    printf "%s \t\t %s \t\t %s %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)" 
+  for i in $(user_iterator); do
+    printf "%s \t\t %s \t\t %s \t\t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)" 
   done
 }
 
-
+user_iterator() {
+  if [ "$offline" = "1" ]; then
+    echo "test"
+  else
+    who | awk '{print $1}'
+  fi
+  
+}
 
 pattern_files() {
   if [ "$pattern" = "" ];then
@@ -80,9 +80,8 @@ pattern_files() {
     error_exit "Introduzca un patron"
   fi
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
-  for i in $(who | cut -d" " -f 1); do
-    tty_compare
-    printf "%s \t\t %s \t\t %s %s\n" "$i" "$(lsof -u $i | grep -E -c $pattern)" "$(id -u $i)" "$(tty_f $i)" 
+  for i in $(user_iterator); do
+    printf "%s \t\t %s \t\t\t %s \t\t %s\n" "$i" "$(lsof -u $i | grep -E -c $pattern)" "$(id -u $i)" "$(tty_f $i)" 
   done
 }
 
@@ -100,6 +99,7 @@ pattern_files() {
           ;;
           
       -o | --off_line )
+          offline=1
           ;;
 
       -u | --user )
