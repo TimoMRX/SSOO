@@ -8,6 +8,8 @@
 
 pattern=
 offline=
+offline=
+user_=
 
 ##### Constantes
 
@@ -39,7 +41,7 @@ usage() {
 #        ---------------------------------------------------
 #         Función que describe el uso correcto del programa
 #        ---------------------------------------------------
-   echo "usage: open_files [-f 'pattern'] [-h] [-o] [-u user1 user2 ...]"
+   echo "usage: open_files [-h] [-o] [-f 'pattern'] [-u user1 user2 ...]"
 }
 
 lsof_install() {
@@ -103,7 +105,6 @@ pattern_files() {
           shift
           pattern=$1
           pattern_files
-          exit 0
           ;;
           
       -o | --off_line )
@@ -119,10 +120,14 @@ pattern_files() {
           fi
           shift
           user_=1
-          while [ "$1" != "-" ] || [ $1 != " " ]; do
+          while [ "$1" != "-" ] && [ "$1" != "" ]; do
             user_param=$1
             shift
-            open_files
+            if [ "$pattern" != "" ]; then
+              pattern_files
+            else
+              open_files
+            fi
           done
           exit 0
           ;;
@@ -139,6 +144,9 @@ pattern_files() {
     shift
   done
 
-open_files
-
+if [ "$pattern" != "" ]; then
+  exit 0
+else
+  open_files
+fi
 exit 0
