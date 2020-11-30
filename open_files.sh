@@ -27,7 +27,7 @@ error_exit() {
 #        Función para salir en caso de error fatal
 
 #                Acepta 1 argumento:
-#                        cadena conteniendo un mensaje descriptivo del error
+#                cadena conteniendo un mensaje descriptivo del error
 #        --------------------------------------------------------------
 
   echo "${PROGNAME}: ${1:-"Error desconocido"}" 1>&2
@@ -35,14 +35,22 @@ error_exit() {
 }
 
 usage() {
-   echo "usage: open_files [-f "patron"] [-h]"
+#        ---------------------------------------------------
+#         Función que describe el uso correcto del programa
+#        ---------------------------------------------------
+   echo "usage: open_files [-f pattern] [-h] [-o] [-u user1 user2 ...]"
 }
 
 lsof_install() {
-  if [ $(echo $(which lsof) $?) = "1" ]; then
+#        ------------------------------------------
+#         Función que verifica si el programa lsof
+#               esta correctamente instalado
+#        ------------------------------------------
+  if [ "$(echo $(which lsof) $?)" = "1" ]; then
     error_exit "lsof no instalado: sudo apt install lsof"
   fi
 }
+
 open_files() {
   lsof_install
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
@@ -52,12 +60,12 @@ open_files() {
    tty="p"
   fi
   for i in $(who | cut -d" " -f 1); do
-    printf "%s \t %s \t\t %s \t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ttyf $i)" 
+    printf "%s \t %s \t\t %s %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ttyf $i)" 
   done
 }
 
 ttyf() {
-  ps -u $1 -eo pid,tty,time --no-headers | sort -k3r | head -n 1 | cut -d"$tty" -f 1
+  ps -u $1 -oetime -o tty,pid --no-headers | sort -k3.1n | head -n 1 | cut -d"$tty" -f 2
 }
 
 pattern_files() {
@@ -71,32 +79,31 @@ pattern_files() {
 ##### Programa principal
 
 # Procesar la línea de comandos del script para leer las opciones
-while [ "$1" != "" ]; do
-   case $1 in
-    -f | --)
-        shift
-        pattern=$1
-        pattern_files pattern
-        exit 0
-        ;;
-        
-    -o | --off_line )
-        ;;
+  while [ "$1" != "" ]; do
+    case $1 in
+      -f | --)
+          shift
+          pattern=$1
+          pattern_files pattern
+          exit 0
+          ;;
+          
+      -o | --off_line )
+          ;;
 
-    -u | --user )
-        ;;
+      -u | --user )
+          ;;
 
-    -h | --help )
-        usage
-        exit
-        ;;
+      -h | --help )
+          usage
+          exit
+          ;;
 
-    * )
-        usage
-        error_exit "Opcion desconocida"
-   esac
-   shift
-done
-
+      * )
+          usage
+          error_exit "Opcion desconocida"
+    esac
+    shift
+  done
 open_files
 exit 0
