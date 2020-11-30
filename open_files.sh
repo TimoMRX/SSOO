@@ -38,7 +38,7 @@ usage() {
 #        ---------------------------------------------------
 #         Función que describe el uso correcto del programa
 #        ---------------------------------------------------
-   echo "usage: open_files [-f'pattern'] [-h] [-o] [-u user1 user2 ...]"
+   echo "usage: open_files [-f 'pattern'] [-h] [-o] [-u user1 user2 ...]"
 }
 
 lsof_install() {
@@ -50,6 +50,13 @@ lsof_install() {
     error_exit "lsof no instalado: sudo apt install lsof"
   fi
 }
+tty_compare() {
+if [ "$(ps -u $i -oetime,tty --no-headers | head -n 1 | awk '{printf $2}')" = "?" ]; then
+  tty="?"
+else 
+  tty="p"
+fi
+}
 
 tty_f() {
   ps -u $1 -oetime -o tty,pid --no-headers | sort -k3.1n | head -n 1 | cut -d"$tty" -f 2
@@ -60,11 +67,7 @@ open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   
   for i in $(who | cut -d" " -f 1); do
-    if [ "$(ps -u $i -oetime,tty --no-headers | head -n 1 | awk '{printf $2}')" = "?" ]; then
-      tty="?"
-    else 
-      tty="p"
-    fi
+    tty_compare
     printf "%s \t\t %s \t\t %s %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)" 
   done
 }
@@ -76,10 +79,10 @@ pattern_files() {
     usage
     error_exit "Introduzca un patron"
   fi
-
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   for i in $(who | cut -d" " -f 1); do
-    printf "%s \t %s \t\t\t %s \t %s\n" "$i" "$(lsof -u $i | grep -E -c $pattern)" "$(id -u $i)" ""
+    tty_compare
+    printf "%s \t\t %s \t\t %s %s\n" "$i" "$(lsof -u $i | grep -E -c $pattern)" "$(id -u $i)" "$(tty_f $i)" 
   done
 }
 
