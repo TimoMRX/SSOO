@@ -63,7 +63,7 @@ user_iterator() {
       getent passwd | grep -v $i |cut -d":" -f1 | sort
     done
   else
-    who | awk '{print $1}'
+      who | awk '{print $1}'
   fi
 }
 
@@ -71,7 +71,9 @@ open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   
   for i in $(user_iterator); do
-    printf "%s \t\t %s \t\t %s \t\t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)" 
+    if [ "$(lsof -u $i | wc -l)" != "0" ]; then
+      printf "%s \t\t %s \t\t %s \t\t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)"
+    fi 
   done
 }
 
@@ -83,7 +85,9 @@ pattern_files() {
   fi
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   for i in $(user_iterator); do
-    printf "%s \t\t %s \t\t\t %s \t\t %s\n" "$i" "$(lsof -u $i | grep -E -c $pattern)" "$(id -u $i)" "$(tty_f $i)" 
+    if [ "$(lsof -u $i | grep -E -c $pattern)" != "0" ]; then
+      printf "%s \t\t %s \t\t\t %s \t\t %s\n" "$i" "$(lsof -u $i | grep -E -c $pattern)" "$(id -u $i)" "$(tty_f $i)" 
+    fi
   done
 }
 
@@ -102,9 +106,17 @@ pattern_files() {
           
       -o | --off_line )
           offline=1
+          if [ "$user_" = 1 ]; then
+            error_exit "-u y -o son incompatibles, use uno"
+          fi
           ;;
 
       -u | --user )
+          if [ "$offline" = 1 ]; then
+            error_exit "-u y -o son incompatibles, use uno"
+          fi
+          shift
+          user_=1
           ;;
 
       -h | --help )
