@@ -38,7 +38,7 @@ usage() {
 #        ---------------------------------------------------
 #         Función que describe el uso correcto del programa
 #        ---------------------------------------------------
-   echo "usage: open_files [-f pattern] [-h] [-o] [-u user1 user2 ...]"
+   echo "usage: open_files [-f'pattern'] [-h] [-o] [-u user1 user2 ...]"
 }
 
 lsof_install() {
@@ -51,40 +51,50 @@ lsof_install() {
   fi
 }
 
+tty_f() {
+  ps -u $1 -oetime -o tty,pid --no-headers | sort -k3.1n | head -n 1 | cut -d"$tty" -f 2
+}
+
+user_iterator() {
+  who | cut -d" " -f 1
+}
+
 open_files() {
-  lsof_install
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
-  if [ $(ps -u $(who | cut -d" " -f 1) -eo tty,time --no-headers | sort -k2r | head -n 1 | cut -d"0" -f 1) == "?" ]; then
+  if [ $(ps -u $(user_iterator) -eo tty,time --no-headers | sort -k2r | head -n 1 | cut -d"0" -f 1) == "?" ]; then
    tty="?"
   else 
    tty="p"
   fi
-  for i in $(who | cut -d" " -f 1); do
-    printf "%s \t %s \t\t %s %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ttyf $i)" 
+  for i in $(user_iterator); do
+    printf "%s \t %s \t\t %s %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)" 
   done
 }
 
-ttyf() {
-  ps -u $1 -oetime -o tty,pid --no-headers | sort -k3.1n | head -n 1 | cut -d"$tty" -f 2
-}
+
 
 pattern_files() {
-  lsof_install
+  if [ "$pattern" = "" ];then
+    usage
+    error_exit "Introduzca un patron"
+  fi
+
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
-  for i in $(who | cut -d" " -f 1); do
-    printf "%s \t %s \t %s \t %s\n" "$i" "lsof -u $i | wc -l" "$(id -u $i)"
+  for i in $(user_iterator); do
+    printf "%s \t %s \t\t\t %s \t %s\n" "$i" "$(lsof -u $i | grep -c $pattern)"   "$(id -u $i)"
   done
 }
 
 ##### Programa principal
 
+  lsof_install
 # Procesar la línea de comandos del script para leer las opciones
   while [ "$1" != "" ]; do
     case $1 in
       -f | --)
           shift
           pattern=$1
-          pattern_files pattern
+          pattern_files
           exit 0
           ;;
           
