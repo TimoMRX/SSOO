@@ -62,6 +62,8 @@ user_iterator() {
     for i in $iterator; do
       getent passwd | grep -v $i |cut -d":" -f1 | sort
     done
+  elif [ "$user_" = "1" ]; then
+    echo $user_param
   else
       who | awk '{print $1}'
   fi
@@ -117,6 +119,12 @@ pattern_files() {
           fi
           shift
           user_=1
+          while [ "$1" != "-" ] || [ $1 != " " ]; do
+            user_param=$1
+            shift
+            open_files
+          done
+          exit 0
           ;;
 
       -h | --help )
