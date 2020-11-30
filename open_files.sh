@@ -38,7 +38,13 @@ usage() {
    echo "usage: open_files [-f "patron"] [-h]"
 }
 
+lsof_install() {
+  if [ $(echo $(which lsof) $?) = "1" ]; then
+    error_exit "lsof no instalado: sudo apt install lsof"
+  fi
+}
 open_files() {
+  lsof_install
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   if [ $(ps -u $(who | cut -d" " -f 1) -eo tty,time --no-headers | sort -k2r | head -n 1 | cut -d"0" -f 1) == "?" ]; then
    tty="?"
@@ -46,15 +52,16 @@ open_files() {
    tty="p"
   fi
   for i in $(who | cut -d" " -f 1); do
-    printf "%s \t %s \t %s \t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ttyf $i)" 
+    printf "%s \t %s \t\t %s \t %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(ttyf $i)" 
   done
 }
 
 ttyf() {
   ps -u $1 -eo pid,tty,time --no-headers | sort -k3r | head -n 1 | cut -d"$tty" -f 1
-} 
+}
 
 pattern_files() {
+  lsof_install
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   for i in $(who | cut -d" " -f 1); do
     printf "%s \t %s \t %s \t %s\n" "$i" "lsof -u $i | wc -l" "$(id -u $i)"
