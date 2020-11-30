@@ -62,13 +62,13 @@ user_iterator() {
 open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
   
-  for i in $(user_iterator); do
-    if [ $(ps -u $i -eo tty,time --no-headers | sort -k2r | head -n 1 | cut -d"0" -f 1) = "?" ]; then
+  for i in $(who | cut -d" " -f 1); do
+    if [ "$(ps -u $i -oetime,tty --no-headers | head -n 1 | awk '{printf $2}')" = "?" ]; then
       tty="?"
     else 
       tty="p"
     fi
-    printf "%s \t %s \t\t %s %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)" 
+    printf "%s \t\t %s \t\t %s %s\n" "$i" "$(lsof -u $i | wc -l)" "$(id -u $i)" "$(tty_f $i)" 
   done
 }
 
@@ -81,7 +81,7 @@ pattern_files() {
   fi
 
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS_PATRON\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
-  for i in $(user_iterator); do
+  for i in $(who | cut -d" " -f 1); do
     printf "%s \t %s \t\t\t %s \t %s\n" "$i" "$(lsof -u $i | grep -E -c $pattern)" "$(id -u $i)" ""
   done
 }
