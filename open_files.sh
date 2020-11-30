@@ -56,6 +56,16 @@ tty_f() {
   ps -u $1 -oetime -o tty,pid --no-headers | head -n 1 | awk '{print $3}'
 }
 
+user_iterator() {
+  iterator=$(who | awk '{print $1}')
+  if [ "$offline" = "1" ]; then
+    for i in $iterator; do
+      getent passwd | grep -v $i |cut -d":" -f1 | sort
+    done
+  else
+    who | awk '{print $1}'
+  fi
+}
 
 open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
@@ -65,14 +75,6 @@ open_files() {
   done
 }
 
-user_iterator() {
-  if [ "$offline" = "1" ]; then
-    echo "test"
-  else
-    who | awk '{print $1}'
-  fi
-  
-}
 
 pattern_files() {
   if [ "$pattern" = "" ];then
@@ -116,5 +118,7 @@ pattern_files() {
     esac
     shift
   done
+
 open_files
+
 exit 0
