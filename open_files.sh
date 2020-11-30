@@ -55,9 +55,6 @@ tty_f() {
   ps -u $1 -oetime -o tty,pid --no-headers | sort -k3.1n | head -n 1 | cut -d"$tty" -f 2
 }
 
-user_iterator() {
-  who | cut -d" " -f 1
-}
 
 open_files() {
   printf "NOMBRE\tNº_FICHEROS_ABIERTOS\tUID\tPID_PROCESO_MAS_ANTIGUO\n"
